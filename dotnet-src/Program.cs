@@ -71,23 +71,35 @@ namespace Openbanking.Demo
             return client;
         }     
 
-    public async Task<string> GetCurrenty(string companyId, string provider)
-    {
-        var baseUrl = $"https://{provider}.openbankingapi.is";
-        var requestUrl = "/DataPlato/Banks/1.0/currencies/2022-11-03";
+        public string ProofKey(string companyId, string companyProofKey)
+        {
+            string messageString = $"{companyId}+{companyProofKey}";
 
-        var login = await LoginAsync();
+            byte[] messageBytes = Encoding.UTF8.GetBytes(messageString);
+            byte[] hashValue = SHA256.HashData(messageBytes);
+
+            return Convert.ToHexString(hashValue);         
+        }
         
-        var client = GetClient(baseUrl, login.AccessToken);
+        public async Task<string> GetCurrenty(string companyId, string privateCompanyId, string provider)
+        {
+            var baseUrl = $"https://{provider}.openbankingapi.is";
+            var requestUrl = "/DataPlato/Banks/1.0/currencies/2022-11-03";
 
-        var request = new RestRequest(requestUrl)
-            .AddHeader("content-type", "application/json")
-            .AddHeader("company-key", companyId)
-            .AddHeader("companyId", companyId)
-            .AddHeader("appId", "<Your openbanking appid>");
-        var response = await client.ExecuteAsync(request);
-        return response.Content ?? string.Empty;
-    }          
+            var login = await LoginAsync();
+        
+            var client = GetClient(baseUrl, login.AccessToken);
+
+            var request = new RestRequest(requestUrl)
+                .AddHeader("content-type", "application/json")            
+                .AddHeader("X-Company-Id", companyId)
+                .AddHeader("X-Company-Hash", ProofKey(companyId, companyProofKey))
+                // Developer access
+                .AddHeader("X-App-Id", "<Your openbanking appid>")
+                .AddHeader("X-App-Email", "<Your openbanking email>");
+            var response = await client.ExecuteAsync(request);
+            return response.Content ?? string.Empty;
+        }          
     }
 
     public class Program
@@ -97,9 +109,10 @@ namespace Openbanking.Demo
             Console.WriteLine("\n------------------------------------------------------------------------------------------");
             var provider = "arionbanki";
             var companyKey = "f745366f-2cab-4ca4-8c67-40dd1dee209f";
+            var companyProofKey = "ab45366f-2c56-4ca4-8c67-40ee1dee210f";
 
             var openbankingApi = new OpenbankingApi();
-            var currencies = await openbankingApi.GetCurrenty(companyKey, provider);
+            var currencies = await openbankingApi.GetCurrenty(companyKey, companyProofKey, provider);
             Console.WriteLine(currencies);
         }
     }    

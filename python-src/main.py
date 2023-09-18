@@ -164,6 +164,8 @@ if __name__ == "__main__":
 
     company_key = 'f745366f-2cab-4ca4-8c67-40dd1dee209f'
     provider = 'arionbanki'
+    # provider = 'islandsbanki'
+    # provider = 'landsbanki'
 
     print('\n------------------------------------------------------------------------------------------')
     openbanking_api = OpenbankingApi()

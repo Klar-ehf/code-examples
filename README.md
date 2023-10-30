@@ -5,6 +5,18 @@ We offer example in dotnet and Python.
 
 # Create claims
 ```PYTHON
+def get_claims(self, company_key, provider_name, claimant, identifier, payer, date_from, date_to, only_unpaid=False):
+    if self.headers is None:
+        self.headers = get_api_auth_header(company_key, self.token)
+    else:
+        self._update_header(company_key)
+    base_url = self.get_bank_blank_url(provider_name)
+    url = '{}/claims/date-filter?claimant={}&identifier={}&payor={}&fromDate={}&toDate={}&onlyUnpaid={}' \
+        .format(base_url, claimant, identifier, payer,
+                date_from.strftime("%Y-%m-%d"), date_to.strftime("%Y-%m-%d"),
+                "true" if only_unpaid else "false")
+    return self._get_result(url)
+
 def create_claim(company_key, section, claimant, identifier, claim_no, payor_id, due_date,
                  final_due_date, cancellation_date, other_cost, interest_rule, amount, reference):
     payload_item = {

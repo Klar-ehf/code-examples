@@ -1,3 +1,7 @@
+if len(str(claim_account)) == 14:
+    claim_account = str(claim_account).replace('-', '')
+elif len(str(claim_account)) != 12:
+    claim_account = str('0{}'.format(claim_account)).replace('-', '')
 payload = {
     "In": {
         "Amount": amount,

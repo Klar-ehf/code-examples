@@ -1,42 +1,46 @@
+import json
+from _ast import operator
 from uuid import uuid4
 
 import requests
 
 
-class BaseOpenbankingApi(object):
+class BaseKlarApi(object):
 
-    def __init__(self, username, password, client_id, client_secret):
+    def __init__(self, username, password, client_id, client_secret, app_id):
         self.username = username
         self.password = password
         self.client_id = client_id
         self.client_secret = client_secret
+        self.app_id = app_id
 
-    def get_token(self):
+    def _get_header(self, company_id, token=None):
+        if token is None:
+            token = self._get_token()
+        data_header = {
+            'content-type': 'application/json',
+            'authorization': 'Bearer ' + token,
+            'X-App-Id': self.app_id,
+            'X-App-Email': self.username,
+            'X-Company-Id': str(company_id),
+            'X-Real-User': self.username
+        }
+        return data_header
+
+    def _get_token(self, verify=True):
         auth_url = 'https://openbanking-iceland.eu.auth0.com/oauth/token'
         headers = {'content-type': 'application/x-www-form-urlencoded'}
         payload = {
             'grant_type': 'password',
-            'username': '<Your username>',
-            'password': '<Your password>',
+            'username': self.username,
+            'password': self.password,
             'audience': 'https://openbankingapi.module',
             'scope': 'email',
-            'client_id': '<Your client id>',
-            'client_secret': '<Your client secret>'
+            'client_id': self.client_id,
+            'client_secret': self.client_secret
         }
-        r = requests.post(url=auth_url, data=payload, headers=headers, verify=True)
+        r = requests.post(url=auth_url, data=payload, headers=headers, verify=verify)
         return r.json()['access_token']
-
-    def get_header(self, company_key, token=None):
-        if token is None:
-            token = self.get_token()
-        data_header = {
-            'content-type': 'application/json',
-            'company-key': str(company_key),
-            'companyId': str(company_key),
-            'authorization': 'Bearer ' + token,
-            'appId': '<your app id>'
-        }
-        return data_header
 
     def _correlation(self, headers):
         self.x_request_id = uuid4()
@@ -72,7 +76,7 @@ class BaseOpenbankingApi(object):
         json_data = None
         error = None
         try:
-            self._correlation()
+            self._correlation(headers)
 
             r = requests.put(url, data=payload, headers=headers, verify="localhost" not in url)
             r.raise_for_status()
@@ -97,7 +101,7 @@ class BaseOpenbankingApi(object):
         json_data = None
         error = None
         try:
-            self._correlation()
+            self._correlation(headers)
 
             r = requests.post(url, data=payload, headers=headers, verify="localhost" not in url)
             r.raise_for_status()
@@ -143,34 +147,68 @@ class BaseOpenbankingApi(object):
         }
 
 
-class OpenbankingApi(BaseOpenbankingApi):
+class KlarApi(BaseKlarApi):
 
     def __init__(self):
-        username = '<your openbanking user>'
-        password = '<your openbanking password>'
-        client_id = '<your openbanking client id>'
-        client_secret = '<your openbanking client secret>'
+        username = '<your username>'
+        password = '<your password>'
+        client_id = '<your client id>'
+        client_secret = '<your client secret>'
+        app_id = '<your developer app id>'
         self.blank_url = 'https://{}.openbankingapi.is/DataPlato/Banks/1.0'
         super().__init__(username, password, client_id, client_secret)
 
-    def get_currencies(self, company_key, provider):
-        headers = self.get_header(company_key)        
+    def get_currencies(self, company_id, provider):
+        headers = self._get_header(company_id)
         base_url = self.blank_url.format(provider)
-        url = '{}/currencies/2022-11-03'.format(base_url)
+        url = f"{base_url}/currencies/2024-08-08"
         return self._get_result(headers, url)
+
+    def get_accounts(self, company_id, provider):
+        headers = self._get_header(company_id)
+        base_url = self.blank_url.format(provider)
+        url = f"{base_url}/accounts"
+        return self._get_result(headers, url)
+
+    def get_statement(self, company_id, provider, account):
+        headers = self._get_header(company_id)
+        base_url = self.blank_url.format(provider)
+        url = f"{base_url}/statements"
+        payload = {
+          "Account": account,
+          "DateFrom": "2024-01-01",
+          "DateTo": "2024-08-09",
+          "RecordFrom": 0,
+          "RecordFromSpecified": False,
+          "RecordTo": 0,
+          "RecordToSpecified": False
+        }
+
+        return self._post_result(headers, url, json.dumps(payload))
 
 
 if __name__ == "__main__":
 
-    company_key = 'f745366f-2cab-4ca4-8c67-40dd1dee209f'
-    provider = 'arionbanki'
-    # provider = 'islandsbanki'
-    # provider = 'landsbanki'
+    _company_key = '<your company id>'
+    _provider = 'arionbanki'
+    # _provider = 'islandsbanki'
+    # _provider = 'landsbanki'
 
     print('\n------------------------------------------------------------------------------------------')
-    openbanking_api = OpenbankingApi()
-    currencies = openbanking_api.get_currencies(company_key, provider)
-    
-    for currency in currencies['data']:
+    klar_api = KlarApi()
+    currencies_response = klar_api.get_currencies(_company_key, _provider)
+
+    # Fetch currencies
+    for currency in currencies_response['data']:
         print(currency)
-    
+        
+    # Fetch accounts
+    accounts_response = klar_api.get_accounts(_company_key, _provider)
+    for account in accounts_response['data']:        
+        print(_account)
+        _account_no = f"{account['Bank']}{account['Ledger']}{account['AccountNumber']}"
+        # Fetch account statement
+        statement_response = klar_api.get_statement(_company_key, _provider, _account_no)
+        for statement in statement_response['data']['Transactions']:
+            print(statement)
+

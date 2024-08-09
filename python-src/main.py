@@ -192,7 +192,7 @@ if __name__ == "__main__":
     _company_key = '<your company id>'
     _provider = 'arionbanki'
     # _provider = 'islandsbanki'
-    # _provider = 'landsbanki'
+    # _provider = 'landsbankinn'
 
     print('\n------------------------------------------------------------------------------------------')
     klar_api = KlarApi()

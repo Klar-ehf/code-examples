@@ -81,7 +81,7 @@ namespace Openbanking.Demo
             return Convert.ToHexString(hashValue);         
         }
         
-        public async Task<string> GetCurrenty(string companyId, string privateCompanyId, string provider)
+        public async Task<string> GetCurrenty(string companyId, string privateCompanyId, string provider, string username)
         {
             var baseUrl = $"https://{provider}.openbankingapi.is";
             var requestUrl = "/DataPlato/Banks/1.0/currencies/2022-11-03";
@@ -94,6 +94,7 @@ namespace Openbanking.Demo
                 .AddHeader("content-type", "application/json")            
                 .AddHeader("X-Company-Id", companyId)
                 .AddHeader("X-Company-Hash", ProofKey(companyId, companyProofKey))
+                .AddHeader("X-Real-User", username)
                 // Developer access
                 .AddHeader("X-App-Id", "<Your openbanking appid>")
                 .AddHeader("X-App-Email", "<Your openbanking email>");
@@ -110,9 +111,10 @@ namespace Openbanking.Demo
             var provider = "arionbanki";
             var companyKey = "f745366f-2cab-4ca4-8c67-40dd1dee209f";
             var companyProofKey = "ab45366f-2c56-4ca4-8c67-40ee1dee210f";
+            var username = "me@mycompany.is";
 
             var openbankingApi = new OpenbankingApi();
-            var currencies = await openbankingApi.GetCurrenty(companyKey, companyProofKey, provider);
+            var currencies = await openbankingApi.GetCurrenty(companyKey, companyProofKey, provider, username);
             Console.WriteLine(currencies);
         }
     }    

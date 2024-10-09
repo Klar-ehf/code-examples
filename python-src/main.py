@@ -164,6 +164,18 @@ class KlarApi(BaseKlarApi):
         url = f"{base_url}/currencies/2024-08-08"
         return self._get_result(headers, url)
 
+    def get_credit_cards(self, company_id, registration_id, provider):
+        headers = self._get_header(company_id)
+        base_url = self.blank_url.format(provider)
+        url = f"{base_url}/creditcards?ownerId={registration_id}"
+        return self._get_result(headers, url)
+
+    def get_credit_card_transactions(self, company_id, card_id, from_date, to_date, provider):
+        headers = self._get_header(company_id)
+        base_url = self.blank_url.format(provider)
+        url = f"{base_url}/creditcards/{card_id}/transactions?fromDate={from_date}&toDate={to_date}"
+        return self._get_result(headers, url)    
+
     def get_accounts(self, company_id, provider):
         headers = self._get_header(company_id)
         base_url = self.blank_url.format(provider)

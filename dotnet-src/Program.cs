@@ -73,7 +73,7 @@ namespace Openbanking.Demo
 
         public string ProofKey(string companyId, string companyProofKey)
         {
-            string messageString = $"{companyId}+{companyProofKey}";
+            string messageString = $"{companyId.ToLower()}+{companyProofKey.ToLower()}";
 
             byte[] messageBytes = Encoding.UTF8.GetBytes(messageString);
             byte[] hashValue = SHA256.HashData(messageBytes);

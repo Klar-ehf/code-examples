@@ -71,9 +71,9 @@ namespace Openbanking.Demo
             return client;
         }     
 
-        public string ProofKey(string companyId, string companyProofKey)
+        public string ProofKey(string companyId, string privateCompanyId)
         {
-            string messageString = $"{companyId.ToLower()}+{companyProofKey.ToLower()}";
+            string messageString = $"{companyId.ToLower()}+{privateCompanyId.ToLower()}";
 
             byte[] messageBytes = Encoding.UTF8.GetBytes(messageString);
             byte[] hashValue = SHA256.HashData(messageBytes);
@@ -93,7 +93,7 @@ namespace Openbanking.Demo
             var request = new RestRequest(requestUrl)
                 .AddHeader("content-type", "application/json")            
                 .AddHeader("X-Company-Id", companyId)
-                .AddHeader("X-Company-Hash", ProofKey(companyId, companyProofKey))
+                .AddHeader("X-Company-Hash", ProofKey(companyId, privateCompanyId))
                 .AddHeader("X-Real-User", username)
                 // Developer access
                 .AddHeader("X-App-Id", "<Your openbanking appid>")

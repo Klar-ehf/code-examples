@@ -109,12 +109,12 @@ namespace Openbanking.Demo
         {
             Console.WriteLine("\n------------------------------------------------------------------------------------------");
             var provider = "arionbanki";
-            var companyKey = "f745366f-2cab-4ca4-8c67-40dd1dee209f";
-            var companyProofKey = "ab45366f-2c56-4ca4-8c67-40ee1dee210f";
-            var username = "me@mycompany.is";
+            var companyId = "f745366f-2cab-4ca4-8c67-40dd1dee209f";
+            var privateCompanyId = "ab45366f-2c56-4ca4-8c67-40ee1dee210f";
+            var realUser = "me@mycompany.is";
 
             var openbankingApi = new OpenbankingApi();
-            var currencies = await openbankingApi.GetCurrenty(companyKey, companyProofKey, provider, username);
+            var currencies = await openbankingApi.GetCurrenty(companyId, privateCompanyId, provider, realUser);
             Console.WriteLine(currencies);
         }
     }    
